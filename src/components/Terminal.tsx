@@ -4,7 +4,8 @@ import type { FileNode, FileOrFolder, FileSystemTree, Path } from '../filesystem
 import { resolvePath, findNodeByPath, listChildrenAtPath, upOneLevel } from '../filesystem/utils.ts';
 import { initialFileSystem } from '../filesystem/initialFs.ts';
 import { FileViewer } from './FileViewer.tsx';
-import { searchPortfolioRepos } from '../services/github';
+import { searchPortfolioRepos, listUserPublicRepos } from '../services/github.ts';
+import MatrixRain from './MatrixRain.tsx';
 
 type TerminalProps = {
   ownerName: string;
@@ -44,6 +45,7 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
   ]);
   const [input, setInput] = useState('');
   const [viewer, setViewer] = useState<ViewerContent | null>(null);
+  const [isMatrixMode, setIsMatrixMode] = useState(false);
   const [promptUser, setPromptUser] = useState<string>(() => localStorage.getItem(LS_GH_KEY) ? `${localStorage.getItem(LS_GH_KEY)}` : DEFAULT_PROMPT_USER);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -61,13 +63,27 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
     return () => window.removeEventListener('click', onFocus);
   }, []);
 
+  const appendOutput = useCallback((text: string, type: OutputLine['type'] = 'info') => {
+    setOutput(prev => [...prev, { id: crypto.randomUUID(), text, type }]);
+  }, []);
+
+  useEffect(() => {
+    if (!isMatrixMode) return;
+    const stop = (e: KeyboardEvent) => {
+      e.preventDefault();
+      setIsMatrixMode(false);
+      appendOutput('Matrix rain stopped.');
+      window.removeEventListener('keydown', stop);
+    };
+    window.addEventListener('keydown', stop);
+    return () => window.removeEventListener('keydown', stop);
+  }, [isMatrixMode, appendOutput]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [output]);
 
-  const appendOutput = useCallback((text: string, type: OutputLine['type'] = 'info') => {
-    setOutput(prev => [...prev, { id: crypto.randomUUID(), text, type }]);
-  }, []);
+  
 
   const setGithubUsername = useCallback((username: string) => {
     localStorage.setItem(LS_GH_KEY, username);
@@ -113,6 +129,7 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
             "- whoami: print owner",
             "- contact: quick contact info",
             "- clear: clear the terminal",
+            "- matrix: start matrix rain (press any key to stop)",
           ].join('\n'));
           break;
         }
@@ -206,6 +223,11 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
           appendOutput(`Fetching public repos with topic 'portfolio' for ${username} ...`);
           const repos = await searchPortfolioRepos(username);
           if (!repos) { appendOutput('Failed to fetch from GitHub', 'error'); break; }
+          const allRepos = await listUserPublicRepos(username);
+          if (allRepos) {
+            const lines = allRepos.map(r => `- ${r.name} ${r.archived ? '(archived) ' : ''}${r.fork ? '(fork) ' : ''}-> ${r.html_url}`);
+            appendOutput(['All public repos found:', ...lines].join('\n'));
+          }
           setFileSystem(prev => {
             const next = structuredClone(prev) as FileSystemTree;
             const folder = findNodeByPath(next, ['/','projects']);
@@ -230,6 +252,11 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
             return next;
           });
           appendOutput(`Fetched ${repos.length} project(s).`, 'success');
+          break;
+        }
+        case 'matrix': {
+          setIsMatrixMode(true);
+          appendOutput('Matrix rain started. Press any key to stop.');
           break;
         }
         case 'set': {
@@ -293,6 +320,12 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
           content={viewer}
           onClose={() => setViewer(null)}
         />
+      )}
+
+      {isMatrixMode && (
+        <div className="matrix-overlay" aria-label="Matrix rain (press any key to close)">
+          <MatrixRain className="matrix-canvas" />
+        </div>
       )}
     </div>
   );

@@ -116,3 +116,10 @@
 .media { width: 100%; height: auto; border-radius: 6px; border: 1px solid rgba(0,255,140,0.2); }
 .link-out { color: #9ff7d1; text-decoration: underline; }
 
+.matrix-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 50;
+}
+

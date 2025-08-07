@@ -32,3 +32,28 @@ export async function searchPortfolioRepos(username: string): Promise<Repo[] | n
   }
 }
 
+export type PublicRepo = {
+  name: string;
+  html_url: string;
+  fork: boolean;
+  archived: boolean;
+  private: boolean;
+};
+
+export async function listUserPublicRepos(username: string): Promise<PublicRepo[] | null> {
+  try {
+    const res = await fetch(`${GH_BASE}/users/${username}/repos?per_page=100&type=public&sort=updated`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data as Array<any>).map((it) => ({
+      name: it.name as string,
+      html_url: it.html_url as string,
+      fork: Boolean(it.fork),
+      archived: Boolean(it.archived),
+      private: Boolean(it.private),
+    }));
+  } catch {
+    return null;
+  }
+}
+
