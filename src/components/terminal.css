@@ -12,6 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px;
 }
 
 .terminal-container::before {
@@ -60,6 +61,8 @@
 }
 
 .term-title { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 14px; color: #9fe7b2; }
+.term-switch-btn { color: #c0f4c0; background: transparent; border: 1px solid rgba(0,255,140,0.3); border-radius: 6px; padding: 4px 8px; cursor: pointer; }
+.term-switch-btn:hover { border-color: #56f09c; }
 
 .terminal-body {
   flex: 1;
@@ -68,6 +71,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 14px;
   line-height: 1.6;
+  text-align: left;
 }
 
 .terminal-line { white-space: pre-wrap; }
@@ -114,6 +118,7 @@
 .overlay-text { white-space: pre-wrap; color: #d2ffe0; }
 
 .media { width: 100%; height: auto; border-radius: 6px; border: 1px solid rgba(0,255,140,0.2); }
+.overlay-body .media { max-height: 70vh; object-fit: contain; }
 .link-out { color: #9ff7d1; text-decoration: underline; }
 
 .matrix-overlay {

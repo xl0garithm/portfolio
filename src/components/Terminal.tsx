@@ -9,6 +9,7 @@ import MatrixRain from './MatrixRain.tsx';
 
 type TerminalProps = {
   ownerName: string;
+  onSwitchMode?: (mode: 'terminal' | 'website') => void;
 };
 
 type OutputLine = {
@@ -24,11 +25,11 @@ type ViewerContent = {
   text?: string;
 };
 
-const LS_FS_KEY = 'portfolio.fs.v1';
+const LS_FS_KEY = 'portfolio.fs.v4';
 const LS_GH_KEY = 'portfolio.github.username.v1';
 const DEFAULT_PROMPT_USER = 'guest';
 
-export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
+export const Terminal: React.FC<TerminalProps> = ({ ownerName, onSwitchMode }) => {
   const [fileSystem, setFileSystem] = useState<FileSystemTree>(() => {
     const raw = localStorage.getItem(LS_FS_KEY);
     if (raw) {
@@ -113,6 +114,18 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
 
     const [command, ...args] = line.split(/\s+/);
 
+    const iconFor = (node: FileOrFolder): string => {
+      if (node.type === 'folder') return '📁';
+      const kind = node.type === 'file' ? node.meta?.kind : undefined;
+      switch (kind) {
+        case 'text': return '📄';
+        case 'image': return '🖼️';
+        case 'video': return '🎞️';
+        case 'link': return '🔗';
+        default: return '📄';
+      }
+    };
+
     try {
       switch (command) {
         case 'help': {
@@ -130,6 +143,7 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
             "- contact: quick contact info",
             "- clear: clear the terminal",
             "- matrix: start matrix rain (press any key to stop)",
+            "- switch: toggle website/terminal modes",
           ].join('\n'));
           break;
         }
@@ -151,7 +165,10 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
         case 'ls': {
           const children = listChildrenAtPath(fileSystem, cwd);
           if (!children) { appendOutput('Not found', 'error'); break; }
-          const names = children.map((n: FileOrFolder) => n.type === 'folder' ? `${n.name}/` : n.name);
+          const names = children.map((n: FileOrFolder) => {
+            const suffix = n.type === 'folder' ? '/' : '';
+            return `${iconFor(n)} ${n.name}${suffix}`;
+          });
           appendOutput(names.join('  '));
           break;
         }
@@ -161,11 +178,11 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
               const prefix = '  '.repeat(depth) + (depth > 0 ? '└─ ' : '');
               if (n.type === 'folder') {
                 return [
-                  `${prefix}${n.name}/`,
+                  `${prefix}${iconFor(n)} ${n.name}/`,
                   renderTree(n.children, depth + 1),
                 ].join('\n');
               }
-              return `${prefix}${n.name}`;
+              return `${prefix}${iconFor(n)} ${n.name}`;
             }).join('\n');
           };
           const children = listChildrenAtPath(fileSystem, cwd) || [];
@@ -254,6 +271,10 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
           appendOutput(`Fetched ${repos.length} project(s).`, 'success');
           break;
         }
+        case 'switch': {
+          onSwitchMode?.('website');
+          break;
+        }
         case 'matrix': {
           setIsMatrixMode(true);
           appendOutput('Matrix rain started. Press any key to stop.');
@@ -294,7 +315,7 @@ export const Terminal: React.FC<TerminalProps> = ({ ownerName }) => {
         <div className="terminal-header">
           <div className="term-dots"><span/><span/><span/></div>
           <div className="term-title">{ownerName} — Matrix Terminal</div>
-          <div style={{ width: 48 }} />
+          <button className="term-switch-btn" onClick={() => onSwitchMode?.('website')} aria-label="Switch to website">Site ↗</button>
         </div>
         <div className="terminal-body" ref={scrollRef}>
           <div className="terminal-line muted">Current path: {cwdDisplay}</div>

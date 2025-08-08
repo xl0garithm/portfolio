@@ -48,8 +48,12 @@ export const initialFileSystem = (ownerName: string): FileSystemTree => ({
       name: 'gallery',
       children: [
         txt('README.txt', 'Sample gallery of images and videos.'),
-        { type: 'file', name: 'headshot.jpg', meta: { kind: 'image', src: '/media/headshot.jpg', source: 'static' } },
-        { type: 'file', name: 'demo.mp4', meta: { kind: 'video', src: '/media/demo.mp4', source: 'static' } },
+        { type: 'file', name: 'headshot.jpg', meta: { kind: 'image', src: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=1200&q=80', source: 'static' } },
+        { type: 'file', name: 'demo.mp4', meta: { kind: 'video', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', source: 'static' } },
+        { type: 'file', name: 'unsplash-1.jpg', meta: { kind: 'image', src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80', source: 'static' } },
+        { type: 'file', name: 'unsplash-2.jpg', meta: { kind: 'image', src: 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?auto=format&fit=crop&w=1200&q=80', source: 'static' } },
+        { type: 'file', name: 'unsplash-3.jpg', meta: { kind: 'image', src: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80', source: 'static' } },
+        { type: 'file', name: 'unsplash-4.jpg', meta: { kind: 'image', src: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80', source: 'static' } },
       ],
     },
     {
